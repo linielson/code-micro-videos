@@ -9,8 +9,8 @@ class Genre extends Model
 {
     use SoftDeletes, Traits\Uuid;
 
-    // sets the fields are safe
-    protected $fillable = ['name', 'is_active'];
+    public $incrementing = false;
+    protected $keyType = 'string';
     protected $dates = ['delete_at'];
-    protected $casts = ['id' => 'string'];
+    protected $fillable = ['name', 'is_active']; // sets the fields are safe
 }
