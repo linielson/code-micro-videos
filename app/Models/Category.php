@@ -12,7 +12,5 @@ class Category extends Model
     // sets the fields are safe
     protected $fillable = ['name', 'description', 'is_active'];
     protected $dates = ['delete_at'];
-    protected $casts = [
-        'id' => 'string'
-    ];
+    protected $casts = ['id' => 'string'];
 }

@@ -10,7 +10,7 @@ class CategoryController extends Controller
 {
     private $rules = [
       'name' => 'required|max:255',
-      'description' => 'boolean'
+      'is_active' => 'boolean'
     ];
 
     public function index()
@@ -21,7 +21,6 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $this->validate($request, $this->rules);
-
         return Category::create($request->all());
     }
 
