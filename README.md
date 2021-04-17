@@ -1,21 +1,19 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="http://maratona.fullcycle.com.br/public/img/logo-maratona.png"/></a>
-</p>
+## Description
 
-## Descrição
+Catalog microservice
 
-Microsserviço de catálogo
+## Run
 
-## Rodar a aplicação
-
-#### Crie os containers com Docker
+#### Up/create docker containers
 
 ```bash
 $ docker-compose up
 ```
 
-#### Accesse no browser
+#### On browser
 
 ```
 http://localhost:8000
 ```
+
+[API Docs](https://documenter.getpostman.com/view/6475177/TzJsexS8)
