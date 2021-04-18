@@ -6,11 +6,15 @@ use App\Models\Genre;
 use PHPUnit\Framework\TestCase;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Traits\Uuid;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 
 class GenreTest extends TestCase
 {
+    use DatabaseMigrations;
+
     public function testIfUseTraits()
     {
+        Genre::create(['name' => 'test']);
         $traits = [SoftDeletes::class, Uuid::class];
         $genreTraits = array_keys(class_uses(Genre::class));
         $this->assertEquals($traits, $genreTraits);
