@@ -11,6 +11,6 @@ class Category extends Model
 
     public $incrementing = false;
     protected $keyType = 'string';
-    protected $dates = ['delete_at'];
+    protected $dates = ['deleted_at'];
     protected $fillable = ['name', 'description', 'is_active']; // sets the fields are safe
 }

@@ -11,6 +11,6 @@ class Genre extends Model
 
     public $incrementing = false;
     protected $keyType = 'string';
-    protected $dates = ['delete_at'];
+    protected $dates = ['deleted_at'];
     protected $fillable = ['name', 'is_active']; // sets the fields are safe
 }
