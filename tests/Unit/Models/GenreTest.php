@@ -32,9 +32,7 @@ class GenreTest extends TestCase
     {
         $genre = new Genre();
         $dates = ['deleted_at', 'created_at', 'updated_at'];
-        foreach ($dates as $date) {
-            $this->assertContains($date, $genre->getDates());
-        }
+        $this->assertEqualsCanonicalizing($dates, $genre->getDates());
         $this->assertCount(count($dates), $genre->getDates());
     }
 
@@ -42,5 +40,11 @@ class GenreTest extends TestCase
     {
         $genre = new Genre();
         $this->assertEquals(['name', 'is_active'], $genre->getFillable());
+    }
+
+    public function testCasts()
+    {
+        $genre = new Genre();
+        $this->assertEquals(['is_active' => 'boolean'], $genre->getCasts());
     }
 }

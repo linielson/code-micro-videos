@@ -13,4 +13,5 @@ class Category extends Model
     protected $keyType = 'string';
     protected $dates = ['deleted_at'];
     protected $fillable = ['name', 'description', 'is_active']; // sets the fields are safe
+    protected $casts = ['is_active' => 'boolean'];
 }

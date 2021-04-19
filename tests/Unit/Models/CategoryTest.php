@@ -32,9 +32,7 @@ class CategoryTest extends TestCase
     {
         $category = new Category();
         $dates = ['deleted_at', 'created_at', 'updated_at'];
-        foreach ($dates as $date) {
-            $this->assertContains($date, $category->getDates());
-        }
+        $this->assertEqualsCanonicalizing($dates, $category->getDates());
         $this->assertCount(count($dates), $category->getDates());
     }
 
@@ -42,5 +40,11 @@ class CategoryTest extends TestCase
     {
         $category = new Category();
         $this->assertEquals(['name', 'description', 'is_active'], $category->getFillable());
+    }
+
+    public function testCasts()
+    {
+        $category = new Category();
+        $this->assertEquals(['is_active' => 'boolean'], $category->getCasts());
     }
 }
