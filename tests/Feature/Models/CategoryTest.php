@@ -12,7 +12,7 @@ class CategoryTest extends TestCase
 
     public function testList()
     {
-        factory(Category::class, 1)->create();
+        factory(Category::class)->create();
         $categories = Category::all();
         $this->assertCount(1, $categories);
         $this->assertEqualsCanonicalizing(
@@ -26,6 +26,7 @@ class CategoryTest extends TestCase
         $category = Category::create(['name' => 'John Doe']);
         $category->refresh();
 
+        $this->assertEquals(36, strlen($category->id));
         $this->assertEquals('John Doe', $category->name);
         $this->assertNull($category->description);
         $this->assertTrue($category->is_active);
@@ -60,7 +61,7 @@ class CategoryTest extends TestCase
         $category = factory(Category::class)->create([
             'description' => 'some description',
             'is_active' => false
-        ])->first();
+        ]);
 
         $data = [
             'name' => 'John Doe',
@@ -72,5 +73,15 @@ class CategoryTest extends TestCase
         foreach($data as $key => $value) {
             $this->assertEquals($value, $category->{$key});
         }
+    }
+
+    public function testDelete()
+    {
+        $category = factory(Category::class)->create();
+        $category->delete();
+        $this->assertNull(Category::find($category->id));
+
+        $category->restore();
+        $this->assertNotNull(Category::find($category->id));
     }
 }

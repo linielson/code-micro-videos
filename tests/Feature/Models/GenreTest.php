@@ -12,7 +12,7 @@ class GenreTest extends TestCase
 
     public function testList()
     {
-        factory(Genre::class, 1)->create();
+        factory(Genre::class)->create();
         $genres = Genre::all();
         $this->assertCount(1, $genres);
         $this->assertEqualsCanonicalizing(
@@ -26,6 +26,7 @@ class GenreTest extends TestCase
         $genre = Genre::create(['name' => 'John Doe']);
         $genre->refresh();
 
+        $this->assertEquals(36, strlen($genre->id));
         $this->assertEquals('John Doe', $genre->name);
         $this->assertTrue($genre->is_active);
     }
@@ -45,7 +46,7 @@ class GenreTest extends TestCase
     {
         $genre = factory(Genre::class)->create([
             'is_active' => false
-        ])->first();
+        ]);
 
         $data = [
             'name' => 'John Doe',
@@ -56,5 +57,15 @@ class GenreTest extends TestCase
         foreach($data as $key => $value) {
             $this->assertEquals($value, $genre->{$key});
         }
+    }
+
+    public function testDelete()
+    {
+        $genre = factory(Genre::class)->create();
+        $genre->delete();
+        $this->assertNull(Genre::find($genre->id));
+
+        $genre->restore();
+        $this->assertNotNull(Genre::find($genre->id));
     }
 }
