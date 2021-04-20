@@ -160,7 +160,7 @@ class CategoryControllerTest extends TestCase
             ->assertStatus(422)
             ->assertJsonValidationErrors(['is_active'])
             ->assertJsonFragment([
-                \Lang::get('validation.boolean', ['attribute' => 'is_active']),
+                \Lang::get('validation.boolean', ['attribute' => 'is active']),
             ]);
     }
 }

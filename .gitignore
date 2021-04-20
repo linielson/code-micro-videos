@@ -3,7 +3,7 @@
 /public/storage
 /storage/*.key
 /vendor
-.env
+/.env
 .env.testing
 .env.backup
 .phpunit.result.cache
@@ -12,9 +12,6 @@ Homestead.yaml
 npm-debug.log
 yarn-error.log
 .docker/dbdata/
-.idea/
-.vscode/
 .history/
-.devcontainer/
 _ide_helper_models.php
 _ide_helper.php
