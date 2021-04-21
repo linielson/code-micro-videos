@@ -5,6 +5,7 @@ namespace Tests\Feature\Models;
 use App\Models\Category;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
+use Ramsey\Uuid\Uuid as UuidValidator;
 
 class CategoryTest extends TestCase
 {
@@ -26,7 +27,7 @@ class CategoryTest extends TestCase
         $category = Category::create(['name' => 'John Doe']);
         $category->refresh();
 
-        $this->assertEquals(36, strlen($category->id));
+        $this->assertTrue(UuidValidator::isValid($category->id));
         $this->assertEquals('John Doe', $category->name);
         $this->assertNull($category->description);
         $this->assertTrue($category->is_active);

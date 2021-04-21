@@ -5,6 +5,7 @@ namespace Tests\Feature\Models;
 use App\Models\Genre;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
+use Ramsey\Uuid\Uuid as UuidValidator;
 
 class GenreTest extends TestCase
 {
@@ -26,7 +27,7 @@ class GenreTest extends TestCase
         $genre = Genre::create(['name' => 'John Doe']);
         $genre->refresh();
 
-        $this->assertEquals(36, strlen($genre->id));
+        $this->assertTrue(UuidValidator::isValid($genre->id));
         $this->assertEquals('John Doe', $genre->name);
         $this->assertTrue($genre->is_active);
     }
