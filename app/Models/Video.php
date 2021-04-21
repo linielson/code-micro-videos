@@ -9,6 +9,8 @@ class Video extends Model
 {
     use SoftDeletes, Traits\Uuid;
 
+    const RATING_LIST = ['L', '10', '12', '14', '16', '18'];
+
     public $incrementing = false;
     protected $keyType = 'string';
     protected $dates = ['deleted_at'];
