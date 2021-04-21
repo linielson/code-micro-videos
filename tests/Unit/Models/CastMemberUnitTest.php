@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Traits\Uuid;
 
-class CastMemberTest extends TestCase
+class CastMemberUnitTest extends TestCase
 {
     public function testIfUseTraits()
     {
@@ -40,5 +40,11 @@ class CastMemberTest extends TestCase
     {
         $castMember = new CastMember();
         $this->assertEquals(['name', 'type'], $castMember->getFillable());
+    }
+
+    public function testCastType()
+    {
+        $castMember = new CastMember();
+        $this->assertEquals(['type' => 'integer'], $castMember->getCasts());
     }
 }
