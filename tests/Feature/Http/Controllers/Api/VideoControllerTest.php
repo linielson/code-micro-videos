@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Http\Controllers\Api;
 
+use App\Models\Category;
+use App\Models\Genre;
 use App\Models\Video;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\TestResponse;
@@ -30,12 +32,17 @@ class VideoControllerTest extends TestCase
 
     public function testStore()
     {
+        $category = factory(Category::class)->create();
+        $genre = factory(Genre::class)->create();
+
         $response = $this->json('POST', route('videos.store'), [
             'title' => 'John Doe',
             'description' => 'Old movie',
             'year_launched' => 1960,
             'rating' => Video::RATING_LIST[0],
-            'duration' => 180
+            'duration' => 180,
+            'categories_id' => [$category->id],
+            'genres_id' => [$genre->id]
         ]);
 
         $video = Video::find($response->json('id'));
@@ -51,20 +58,28 @@ class VideoControllerTest extends TestCase
             'year_launched' => 2021,
             'rating' => Video::RATING_LIST[0],
             'duration' => 180,
-            'opened' => true
+            'opened' => true,
+            'categories_id' => [$category->id],
+            'genres_id' => [$genre->id]
         ]);
         $this->assertTrue($response->json('opened'));
     }
 
     public function testUpdate()
     {
+        $category = factory(Category::class)->create();
+        $genre = factory(Genre::class)->create();
         $video = factory(Video::class)->create([
             'year_launched' => 1920,
             'opened' => true,
             'rating' => Video::RATING_LIST[0],
-            'duration' => 180
+            'duration' => 180,
+            'categories_id' => [$category->id],
+            'genres_id' => [$genre->id]
         ]);
 
+        $another_category = factory(Category::class)->create();
+        $another_genre = factory(Genre::class)->create();
         $updatedData = [
             'title' => 'John Doe',
             'description' => 'Old movie',
@@ -72,6 +87,8 @@ class VideoControllerTest extends TestCase
             'rating' => Video::RATING_LIST[2],
             'duration' => 120,
             'opened' => false,
+            'categories_id' => [$another_category->id],
+            'genres_id' => [$another_genre->id]
         ];
 
         $response = $this->json('PUT', route('videos.update', ['video' => $video->id]), $updatedData);
@@ -121,7 +138,9 @@ class VideoControllerTest extends TestCase
             'opened' => 't',
             'duration' => '10m',
             'year_launched' => '10/10/2010',
-            'rating' => 0
+            'rating' => 0,
+            'categories_id' => 'a',
+            'genres_id' => 'a'
         ]);
 
         $this->assertInvalidationFields($response, ['title'], 'max.string', ['max' => 255]);
@@ -129,5 +148,15 @@ class VideoControllerTest extends TestCase
         $this->assertInvalidationFields($response, ['duration'], 'integer');
         $this->assertInvalidationFields($response, ['year_launched'], 'date_format', ['format' => 'Y']);
         $this->assertInvalidationFields($response, ['rating'], 'in');
+        $this->assertInvalidationFields($response, ['categories_id'], 'array');
+        $this->assertInvalidationFields($response, ['genres_id'], 'array');
+
+        $response = $this->json($method, $uri, [
+            'categories_id' => ['999'],
+            'genres_id' => ['999']
+        ]);
+
+        $this->assertInvalidationFields($response, ['categories_id'], 'exists');
+        $this->assertInvalidationFields($response, ['genres_id'], 'exists');
     }
 }
