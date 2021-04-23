@@ -69,14 +69,16 @@ class VideoControllerTest extends TestCase
     {
         $category = factory(Category::class)->create();
         $genre = factory(Genre::class)->create();
+
         $video = factory(Video::class)->create([
             'year_launched' => 1920,
             'opened' => true,
             'rating' => Video::RATING_LIST[0],
             'duration' => 180,
-            'categories_id' => [$category->id],
-            'genres_id' => [$genre->id]
         ]);
+        $video->categories()->sync($category->id);
+        $video->genres()->sync($genre->id);
+        $video->save();
 
         $another_category = factory(Category::class)->create();
         $another_genre = factory(Genre::class)->create();
@@ -90,7 +92,6 @@ class VideoControllerTest extends TestCase
             'categories_id' => [$another_category->id],
             'genres_id' => [$another_genre->id]
         ];
-
         $response = $this->json('PUT', route('videos.update', ['video' => $video->id]), $updatedData);
 
         $video = Video::find($response->json('id'));
