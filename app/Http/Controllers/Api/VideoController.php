@@ -28,9 +28,13 @@ class VideoController extends BasicCrudController
     public function store(Request $request)
     {
         $validateData = $this->validate($request, $this->rules());
-        $obj = $this->model()::create($validateData);
-        $obj->categories()->sync($request->get('categories_id'));
-        $obj->genres()->sync($request->get('genres_id'));
+        $self = $this;
+        $obj = \DB::transaction(function() use ($request, $validateData, $self) {
+            $obj = $this->model()::create($validateData);
+            $self->handleRelations($obj, $request);
+            return $obj;
+        });
+
         $obj->refresh();
         return $obj;
     }
@@ -39,10 +43,19 @@ class VideoController extends BasicCrudController
     {
         $obj = $this->findOrFail($id);
         $validateData = $this->validate($request, $this->rules());
-        $obj->update($validateData);
-        $obj->categories()->sync($request->get('categories_id'));
-        $obj->genres()->sync($request->get('genres_id'));
+        $self = $this;
+        $obj = \DB::transaction(function() use ($request, $validateData, $self, $obj) {
+            $obj->update($validateData);
+            $self->handleRelations($obj, $request);
+            return $obj;
+        });
+
         return $obj;
     }
 
+    protected function handleRelations($video, Request $request)
+    {
+        $video->categories()->sync($request->get('categories_id'));
+        $video->genres()->sync($request->get('genres_id'));
+    }
 }
