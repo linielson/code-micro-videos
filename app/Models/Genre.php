@@ -14,4 +14,9 @@ class Genre extends Model
     protected $dates = ['deleted_at'];
     protected $fillable = ['name', 'is_active']; // sets the fields are safe
     protected $casts = ['is_active' => 'boolean'];
+
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class);
+    }
 }
