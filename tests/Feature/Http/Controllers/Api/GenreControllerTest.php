@@ -144,14 +144,6 @@ class GenreControllerTest extends TestCase
         $this->assertTrue($hasError);
     }
 
-    protected function assertHasCategory($genreId, $categoryId)
-    {
-        $this->assertDatabaseHas('category_genre', [
-            'genre_id' => $genreId,
-            'category_id' => $categoryId
-        ]);
-    }
-
     public function testDestroy()
     {
         $genre = factory(Genre::class)->create();
@@ -209,10 +201,34 @@ class GenreControllerTest extends TestCase
         $this->assertInvalidationFields($response, ['categories_id'], 'exists');
     }
 
-    private function assertInvalidationRequired(TestResponse $response)
+    public function testSyncCategories()
     {
-        $this->assertInvalidationFields($response, ['name', 'categories_id'], 'required');
-        $response->assertJsonMissingValidationErrors(['is_active']);
+        $categoriesId = factory(Category::class, 3)->create()->pluck('id')->toArray();
+        $sendData = ['name' => 'Test', 'categories_id' => [$categoriesId[0]]];
+
+        $response = $this->json('POST', route('genres.store'), $sendData);
+        $this->assertDatabaseHas('category_genre', [
+            'category_id' => $categoriesId[0],
+            'genre_id' => $response->json('id')
+        ]);
+
+        $sendData = ['name' => 'Test', 'categories_id' => [$categoriesId[1], $categoriesId[2]]];
+
+        $response = $this->json('PUT', route('genres.update', ['genre' => $response->json('id')]), $sendData);
+        $this->assertDatabaseMissing('category_genre', [
+            'category_id' => $categoriesId[0],
+            'genre_id' => $response->json('id')
+        ]);
+
+        $this->assertDatabaseHas('category_genre', [
+            'category_id' => $categoriesId[1],
+            'genre_id' => $response->json('id')
+        ]);
+
+        $this->assertDatabaseHas('category_genre', [
+            'category_id' => $categoriesId[2],
+            'genre_id' => $response->json('id')
+        ]);
     }
 
     private function sendData() {
@@ -222,5 +238,19 @@ class GenreControllerTest extends TestCase
             'is_active' => true,
             'categories_id' => [$category->id]
         ];
+    }
+
+    private function assertInvalidationRequired(TestResponse $response)
+    {
+        $this->assertInvalidationFields($response, ['name', 'categories_id'], 'required');
+        $response->assertJsonMissingValidationErrors(['is_active']);
+    }
+
+    private function assertHasCategory($genreId, $categoryId)
+    {
+        $this->assertDatabaseHas('category_genre', [
+            'genre_id' => $genreId,
+            'category_id' => $categoryId
+        ]);
     }
 }

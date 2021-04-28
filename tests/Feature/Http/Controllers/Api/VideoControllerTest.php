@@ -175,22 +175,6 @@ class VideoControllerTest extends TestCase
         $this->assertTrue($hasError);
     }
 
-    protected function assertHasCategory($videoId, $categoryId)
-    {
-        $this->assertDatabaseHas('category_video', [
-            'video_id' => $videoId,
-            'category_id' => $categoryId
-        ]);
-    }
-
-    protected function assertHasGenre($videoId, $genreId)
-    {
-        $this->assertDatabaseHas('genre_video', [
-            'video_id' => $videoId,
-            'genre_id' => $genreId
-        ]);
-    }
-
     public function testDestroy()
     {
         $video = factory(Video::class)->create();
@@ -210,6 +194,134 @@ class VideoControllerTest extends TestCase
     {
         $video = factory(Video::class)->create();
         $this->assertValidations('PUT', route('videos.update', ['video' => $video->id]));
+    }
+
+    public function testSyncCategories()
+    {
+        $categoriesId = factory(Category::class, 3)->create()->pluck('id')->toArray();
+        $genre = factory(Genre::class)->create();
+        $genre->categories()->sync($categoriesId);
+        $genreId = $genre->id;
+
+        $sendData = [
+            'title' => 'John Doe',
+            'description' => 'Old movie',
+            'year_launched' => 1960,
+            'rating' => Video::RATING_LIST[0],
+            'duration' => 180,
+            'genres_id' => [$genreId],
+            'categories_id' => [$categoriesId[0]]
+         ];
+
+        $response = $this->json('POST', route('videos.store'), $sendData);
+        $this->assertDatabaseHas('category_video', [
+            'category_id' => $categoriesId[0],
+            'video_id' => $response->json('id')
+        ]);
+
+        $sendData = [
+            'title' => 'John Doe',
+            'description' => 'Old movie',
+            'year_launched' => 1960,
+            'rating' => Video::RATING_LIST[0],
+            'duration' => 180,
+            'genres_id' => [$genreId],
+            'categories_id' => [$categoriesId[1], $categoriesId[2]]
+         ];
+
+        $response = $this->json('PUT', route('videos.update', ['video' => $response->json('id')]), $sendData);
+        $this->assertDatabaseMissing('category_video', [
+            'category_id' => $categoriesId[0],
+            'video_id' => $response->json('id')
+        ]);
+
+        $this->assertDatabaseHas('category_video', [
+            'category_id' => $categoriesId[1],
+            'video_id' => $response->json('id')
+        ]);
+
+        $this->assertDatabaseHas('category_video', [
+            'category_id' => $categoriesId[2],
+            'video_id' => $response->json('id')
+        ]);
+    }
+
+    public function testSyncGenres()
+    {
+        $genresId = factory(Genre::class, 3)->create()->pluck('id')->toArray();
+        $category = factory(Category::class)->create();
+
+        $sendData = [
+            'title' => 'John Doe',
+            'description' => 'Old movie',
+            'year_launched' => 1960,
+            'rating' => Video::RATING_LIST[0],
+            'duration' => 180,
+            'categories_id' => [$category->id],
+            'genres_id' => [$genresId[0]]
+         ];
+
+        $response = $this->json('POST', route('videos.store'), $sendData);
+        $this->assertDatabaseHas('genre_video', [
+            'genre_id' => $genresId[0],
+            'video_id' => $response->json('id')
+        ]);
+
+        $sendData = [
+            'title' => 'John Doe',
+            'description' => 'Old movie',
+            'year_launched' => 1960,
+            'rating' => Video::RATING_LIST[0],
+            'duration' => 180,
+            'categories_id' => [$category->id],
+            'genres_id' => [$genresId[1], $genresId[2]]
+         ];
+
+        $response = $this->json('PUT', route('videos.update', ['video' => $response->json('id')]), $sendData);
+        $this->assertDatabaseMissing('genre_video', [
+            'genre_id' => $genresId[0],
+            'video_id' => $response->json('id')
+        ]);
+
+        $this->assertDatabaseHas('genre_video', [
+            'genre_id' => $genresId[1],
+            'video_id' => $response->json('id')
+        ]);
+
+        $this->assertDatabaseHas('genre_video', [
+            'genre_id' => $genresId[2],
+            'video_id' => $response->json('id')
+        ]);
+    }
+
+    private function sendData() {
+        $category = factory(Category::class)->create();
+        $genre = factory(Genre::class)->create();
+        return [
+            'title' => 'John Doe',
+            'description' => 'Old movie',
+            'year_launched' => 1960,
+            'rating' => Video::RATING_LIST[0],
+            'duration' => 180,
+            'categories_id' => [$category->id],
+            'genres_id' => [$genre->id]
+        ];
+    }
+
+    private function assertHasCategory($videoId, $categoryId)
+    {
+        $this->assertDatabaseHas('category_video', [
+            'video_id' => $videoId,
+            'category_id' => $categoryId
+        ]);
+    }
+
+    private function assertHasGenre($videoId, $genreId)
+    {
+        $this->assertDatabaseHas('genre_video', [
+            'video_id' => $videoId,
+            'genre_id' => $genreId
+        ]);
     }
 
     private function assertInvalidationRequired(TestResponse $response)
@@ -261,19 +373,5 @@ class VideoControllerTest extends TestCase
 
         $this->assertInvalidationFields($response, ['categories_id'], 'exists');
         $this->assertInvalidationFields($response, ['genres_id'], 'exists');
-    }
-
-    private function sendData() {
-        $category = factory(Category::class)->create();
-        $genre = factory(Genre::class)->create();
-        return [
-            'title' => 'John Doe',
-            'description' => 'Old movie',
-            'year_launched' => 1960,
-            'rating' => Video::RATING_LIST[0],
-            'duration' => 180,
-            'categories_id' => [$category->id],
-            'genres_id' => [$genre->id]
-        ];
     }
 }
