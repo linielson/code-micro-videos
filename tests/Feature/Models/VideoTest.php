@@ -3,6 +3,7 @@
 namespace Tests\Feature\Models;
 
 use App\Models\Video;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
 use Ramsey\Uuid\Uuid as UuidValidator;
@@ -97,5 +98,49 @@ class VideoTest extends TestCase
 
         $video->restore();
         $this->assertNotNull(Video::find($video->id));
+    }
+
+    public function testRollbackCreate()
+    {
+        $hasError = false;
+        try{
+            Video::Create([
+                'title' => 'John Doe',
+                'description' => 'Old movie',
+                'year_launched' => 1960,
+                'rating' => Video::RATING_LIST[0],
+                'duration' => 180,
+                // 'genres_id' => [0,1,2],
+                'categories_id' => [0,1,2]
+            ]);
+            }catch (QueryException $exception) {
+            $this->assertCount(0, Video::all());
+            $hasError = true;
+        }
+
+        $this->assertTrue($hasError);
+    }
+
+    public function testRollbackUpdate()
+    {
+        $hasError = false;
+        $video = factory(Video::class)->create();
+        $oldTitle = $video->title;
+        try{
+            $video->update([
+                'title' => 'John Doe',
+                'description' => 'Old movie',
+                'year_launched' => 1960,
+                'rating' => Video::RATING_LIST[0],
+                'duration' => 180,
+                // 'genres_id' => [0,1,2],
+                'categories_id' => [0,1,2]
+            ]);
+        }catch (QueryException $exception) {
+            $this->assertDatabaseHas('videos', ['title' => $oldTitle]);
+            $hasError = true;
+        }
+
+        $this->assertTrue($hasError);
     }
 }
