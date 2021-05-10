@@ -23,7 +23,7 @@ class Video extends Model
             \DB::beginTransaction();
             $obj = static::query()->create($attributes);
             static::handleRelations($obj, $attributes);
-            //updalod
+            //upload
             \DB::commit();
             return $obj;
         } catch (\Exception $e) {
@@ -42,7 +42,7 @@ class Video extends Model
             $saved = parent::update($attributes, $options);
             static::handleRelations($this, $attributes);
             if ($saved) {
-                //updalod new
+                //upload new
                 //delete old
             }
             \DB::commit();
