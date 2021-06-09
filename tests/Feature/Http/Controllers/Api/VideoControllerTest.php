@@ -5,6 +5,7 @@ namespace Tests\Feature\Http\Controllers\Api;
 use App\Models\Category;
 use App\Models\Genre;
 use App\Models\Video;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\TestResponse;
 use Tests\TestCase;
@@ -43,6 +44,17 @@ class VideoControllerTest extends TestCase
 
         $response = $this->json('POST', route('videos.store'), array_merge($this->sendData(), ['opened' => true]));
         $this->assertTrue($response->json('opened'));
+
+        \Storage::fake();
+        $file = UploadedFile::fake()->create('video.mp4', 102400);
+
+        $response = $this->json('POST', route('videos.store'), array_merge($this->sendData(), ['video_file' => $file]));
+        $video = Video::find($response->json('id'));
+        $response
+            ->assertStatus(201)
+            ->assertJson($video->toArray());
+
+        \Storage::assertExists("{$response->json('id')}/{$file->hashName()}");
     }
 
     public function testUpdate()
@@ -101,6 +113,7 @@ class VideoControllerTest extends TestCase
     public function testInvalidationDataPOST()
     {
         $this->assertValidations('POST', route('videos.store'));
+        $this->assertValidationsVideoFile('POST', route('videos.store'));
     }
 
     public function testInvalidationDataPUT()
@@ -188,5 +201,15 @@ class VideoControllerTest extends TestCase
 
         $this->assertInvalidationFields($response, ['categories_id'], 'exists');
         $this->assertInvalidationFields($response, ['genres_id'], 'exists');
+    }
+
+    private function assertValidationsVideoFile(string $method, $uri)
+    {
+        $file = UploadedFile::fake()->create('video.mp3', 102401);
+
+        $response = $this->json($method, $uri, ['video_file' => $file]);
+
+        $this->assertInvalidationFields($response, ['video_file'], 'max.file', ['max' => 102400]);
+        $this->assertInvalidationFields($response, ['video_file'], 'mimes', ['values' => 'mp4']);
     }
 }
