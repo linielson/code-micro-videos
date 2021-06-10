@@ -14,10 +14,12 @@ class Video extends Model
     const RATING_LIST = ['L', '10', '12', '14', '16', '18'];
 
     public $incrementing = false;
-    public static $fileFields = ['video_file'];
+    public static $fileFields = ['video_file', 'thumb_file'];
     protected $keyType = 'string';
     protected $dates = ['deleted_at'];
-    protected $fillable = ['title', 'description', 'year_launched', 'opened', 'rating', 'duration'];
+    protected $fillable = [
+        'title', 'description', 'year_launched', 'opened', 'rating', 'duration', 'video_file', 'thumb_file'
+    ];
     protected $casts = ['opened' => 'boolean', 'year_launched' => 'integer', 'duration' => 'integer'];
 
     public static function create(array $attributes = [])
@@ -32,7 +34,7 @@ class Video extends Model
             return $obj;
         } catch (\Exception $e) {
             if (isset($obj)) {
-                //delete
+                $obj->deleteFiles($files);
             }
             \DB::rollBack();
             throw $e;

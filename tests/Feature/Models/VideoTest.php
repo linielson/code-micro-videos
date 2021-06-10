@@ -5,10 +5,13 @@ namespace Tests\Feature\Models;
 use App\Models\Video;
 use App\Models\Category;
 use App\Models\Genre;
+use Illuminate\Database\Events\TransactionCommitted;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 use Ramsey\Uuid\Uuid as UuidValidator;
+use Tests\Exceptions\TestException;
 
 class VideoTest extends TestCase
 {
@@ -29,6 +32,7 @@ class VideoTest extends TestCase
                 'rating',
                 'duration',
                 'video_file',
+                'thumb_file',
                 'created_at',
                 'updated_at',
                 'deleted_at'
@@ -153,7 +157,6 @@ class VideoTest extends TestCase
                 'year_launched' => 1960,
                 'rating' => Video::RATING_LIST[0],
                 'duration' => 180,
-                // 'genres_id' => [0,1,2],
                 'categories_id' => [0,1,2]
             ]);
             }catch (QueryException $exception) {
@@ -176,7 +179,6 @@ class VideoTest extends TestCase
                 'year_launched' => 1960,
                 'rating' => Video::RATING_LIST[0],
                 'duration' => 180,
-                // 'genres_id' => [0,1,2],
                 'categories_id' => [0,1,2]
             ]);
         }catch (QueryException $exception) {
@@ -275,6 +277,54 @@ class VideoTest extends TestCase
             'genre_id' => $genresId[2],
             'video_id' => $video->id
         ]);
+    }
+
+    public function testCreateWithFiles()
+    {
+        \Storage::fake();
+        $thumb_file = UploadedFile::fake()->image('thumb.jpg');
+        $video_file = UploadedFile::fake()->image('video.mp4');
+        $video = Video::create([
+            'title' => 'Some title',
+            'description' => 'Some description',
+            'year_launched' => 2020,
+            'rating' => Video::RATING_LIST[0],
+            'duration' => 60,
+            'thumb_file' => $thumb_file,
+            'video_file' => $video_file,
+        ]);
+        $video->refresh();
+
+        $this->assertDatabaseHas('videos', ['thumb_file' => $thumb_file->hashName(), 'video_file' => $video_file->hashName()]);
+
+        \Storage::assertExists("{$video->id}/{$video->thumb_file}");
+        \Storage::assertExists("{$video->id}/{$video->video_file}");
+    }
+
+    public function testCreateIfRollbackFiles()
+    {
+        \Storage::fake();
+        \Event::listen(TransactionCommitted::class, function () {
+            throw new TestException();
+        });
+        $hashError = false;
+
+        try {
+            $video = Video::create([
+                'title' => 'Some title',
+                'description' => 'Some description',
+                'year_launched' => 2020,
+                'rating' => Video::RATING_LIST[0],
+                'duration' => 60,
+                'thumb_file' => UploadedFile::fake()->image('thumb.jpg'),
+                'video_file' => UploadedFile::fake()->image('thumb.mp4'),
+            ]);
+        } catch (TestException $e) {
+            $this->assertCount(0, \Storage::allFiles());
+            $hashError = true;
+        }
+
+        $this->assertTrue($hashError);
     }
 
     protected function assertHasCategory($videoId, $categoryId)

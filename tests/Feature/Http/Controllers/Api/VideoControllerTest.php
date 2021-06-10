@@ -210,6 +210,6 @@ class VideoControllerTest extends TestCase
         $response = $this->json($method, $uri, ['video_file' => $file]);
 
         $this->assertInvalidationFields($response, ['video_file'], 'max.file', ['max' => 102400]);
-        $this->assertInvalidationFields($response, ['video_file'], 'mimes', ['values' => 'mp4']);
+        $this->assertInvalidationFields($response, ['video_file'], 'mimetypes', ['values' => 'video/mp4']);
     }
 }
