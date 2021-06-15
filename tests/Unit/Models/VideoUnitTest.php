@@ -41,7 +41,7 @@ class VideoUnitTest extends TestCase
     {
         $video = new Video();
         $this->assertEquals(
-            ['title', 'description', 'year_launched', 'opened', 'rating', 'duration'],
+            ['title', 'description', 'year_launched', 'opened', 'rating', 'duration' , 'video_file', 'thumb_file'],
             $video->getFillable()
         );
     }
